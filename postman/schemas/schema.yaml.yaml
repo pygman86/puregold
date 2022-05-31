@@ -1,0 +1,2724 @@
+#Postman schema documenation 지원 버전이 3.1.0 지원 안함.
+#https://spec.openapis.org/oas/v3.0.0#openapi-specification
+openapi: 3.0.0
+
+info:
+    version: 1.0-beta-20220207
+    title: QFeed API
+    description: '>'
+
+servers:
+  - url: https://api-dev.a2a.apollo-ai.io/v1
+    description: '> Dev (API Key 별도 문의)'
+  - url: https://api.a2a.apollo-ai.io/v1
+    description: '> Stage (API Key 별도 문의)'
+
+security:
+    - apiKey: []
+
+paths:
+    /answer:
+        description: '## 답변'
+        post:
+            summary: 답변 등록
+            description: |
+                > * 일반 답변 등록
+                > * 자동 답변 등록 (backend 전용)
+            operationId: addAnswer
+            tags: [ANSWER]
+            requestBody:
+                description: '> '
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/AnswerCreationRequest'
+                        examples:
+                            일반 답변 등록하기:
+                                value:
+                                    userInfoId: B
+                                    questionId: 5
+                                    type: GENERAL
+                                    answer: 4명까지 모일 수 있습니다.
+                                    locations: 
+                                        - latitude: 35.1586728
+                                          longitude: 129.1598677
+                                          name: 해운대 해수욕장
+                                          domainName: 부산 해운대구 해운대해변로 264
+                                          poiId: 123412
+                            자동 답변 등록하기:
+                                summary: backend 전용
+                                value: 
+                                    questionId: 5
+                                    originAnswerId: 1
+                                    type: AUTO
+            responses:                
+                '201':
+                    $ref: '#/components/responses/AnswerCreationSuccess'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '409':
+                    $ref: '#/components/responses/Conflict'
+                '422':
+                    $ref: '#/components/responses/UnprocessableEntity'
+                '423': 
+                    $ref: '#/components/responses/Locked'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+    
+    /dump:
+        description: '## 미러링'
+        get:
+            summary: 질문 / 답변 세트 조회
+            description: '> `post` Method도 동일하게 사용 가능'
+            operationId: getDump
+            tags: [MIRRORING]
+            requestBody:
+                description: '>'
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/DumpRequest'
+                        example:
+                            from: 2021-12-12T18:00:03.28+09:00
+            responses:
+                '201':
+                    $ref: '#/components/responses/SearchQASuccess'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+
+    /dump/statistics:
+        description: '## 미러링'
+        get:
+            summary: 통계 처리용 데이터 조회
+            description: '> `post` Method도 동일하게 사용 가능'
+            operationId: getDumpStatistics
+            tags: [MIRRORING]
+            requestBody:
+                description: '>'
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/DumpQuestionAnswerRequest'
+            responses:
+                '201':
+                    $ref: '#/components/responses/SearchQASuccess'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+         
+    /complaint:
+        description: '## 게시글 불만제기'
+        post:
+            summary: 질문 / 답변 신고하기, 질문 /답변 마스킹 해제요청하기
+            description: |
+                * 질문 신고하기
+                * 답변 신고하기
+                * 질문 마스킹 해제 요청하기
+                * 답변 마스킹 해제 요청하기
+            operationId: 'addComplaint'
+            tags: [COMPLAINT]
+            requestBody:
+                description: '>'
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ComplaintRequest'
+                        examples:
+                            질문/답변 신고하기:
+                                value: 
+                                    userInfoId: D
+                                    type: QUESTION
+                                    questionId: 5
+                                    reason: MEANINGLESS
+                                    description: 의미없는 질문인것 같습니다.
+                            질문/답변 마스킹 해제요청:
+                                value:
+                                    userInfoId: D
+                                    type: QUESTION
+                                    questionId: 5
+                                    reason: MASKING_OBJECTION
+                                    description: 왜 마스킹되었는지 이해가 안됩니다.
+            responses:
+                '201':
+                    $ref: '#/components/responses/ComplaintSuccess'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '409':
+                    $ref: '#/components/responses/Conflict'
+                '422':
+                    $ref: '#/components/responses/UnprocessableEntity'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+
+    /manager/administration:
+        description: '## 어드민'
+        post:
+            summary: 질문 담당하기
+            description: '>'
+            operationId: addAdministration
+            tags: [ADMIN]
+            requestBody:
+                description: '>'
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/AdministrationCreationRequest'
+                        example:
+                            adminId: F
+                            questionId: 5
+            responses:
+                '201':
+                    $ref: '#/components/responses/AdministrationCreationSuccess'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '409':
+                    $ref: '#/components/responses/Conflict'
+                '422':
+                    $ref: '#/components/responses/UnprocessableEntity'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+        put:
+            summary: 질문 담당 위임 / 해제
+            description: '>'
+            operationId: updateAdministration
+            tags: [ADMIN]
+            requestBody:
+                description: '>'
+                required: true
+                content: 
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/AdministrationUpdateRequest'
+                        examples:
+                            질문 담당 위임:
+                                value:
+                                    adminId: F
+                                    questionId: 5
+                                    type: DELEGATION
+                                    delegateTo: G
+                            질문 담당 해제:
+                                value: 
+                                    adminId: F
+                                    questionId: 5
+                                    type: ABANDONMENT
+            responses:
+                '200':
+                    $ref: '#/components/responses/AdministrationUpdateSuccess'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '422':
+                    $ref: '#/components/responses/UnprocessableEntity'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'                    
+
+    /manager/inspection:
+        description: '## 질문/답변'
+        post:
+            summary: 질문/답변 신고 및 마스킹 해제요청 검수하기
+            description: '>'
+            operationId: 'addInspection'
+            tags: [ADMIN]
+            requestBody:
+                description: '>'
+                required: true
+                content:
+                    application/json:
+                        schema: 
+                            $ref: '#/components/schemas/AdminInspectionCreationRequest'
+                        example:
+                            adminId: F
+                            qaType: ANSWER
+                            answerId: 7
+            responses:
+                '201':
+                    $ref: '#/components/responses/AdminInspectionCreationSuccess'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '409':
+                    $ref: '#/components/responses/Conflict'
+                '422':
+                    $ref: '#/components/responses/UnprocessableEntity'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'                
+
+        put:
+            summary: 질문/답변 신고 마스킹 해제요청, 검수 담당 위임 / 처리 / 해제
+            description: |
+                * 질문/답변 신고 및 마스킹 해제요청 검수 담당 위임
+                * 질문/답변 신고 및 마스킹 해제요청 검수 처리
+                * 질문/답변 신고 및 마스킹 해제요청 검수 담당 해제
+            operationId: 'updateInspection'
+            tags: [ADMIN]
+            requestBody:
+                description: '>'
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/AdminInspectionUpdateRequest'
+                        examples:
+                            질문/답변 신고 및 마스킹 해제요청 검수 담당 위임:
+                                value:
+                                    adminId: F
+                                    type: DELEGATION
+                                    delegatedTo: G
+                                    qaType: ANSWER
+                                    answerId: 7
+                            질문/답변 신고 및 마스킹 해제요청 검수 처리:
+                                value:
+                                    adminId: F
+                                    type: DECISION
+                                    qaType: ANSWER
+                                    answerId: 7
+                                    decision: NOT_MASKING
+                                    description: 답변이 질문자의 기분을 상하게 할 여지가 있음. 비속어를 사용했음. 하지만 답변자의 내용이 일리가 있어서 보류 결정함
+                            질문/답변 신고 및 마스킹 해제요청 검수 담당 해제:
+                                value:
+                                    adminId: F
+                                    type: ABANDONMENT
+                                    qaType: ANSWER
+                                    answerId: 7
+            responses:
+                '201':
+                    $ref: '#/components/responses/AdminInspectionUpdateSuccess'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '422':
+                    $ref: '#/components/responses/UnprocessableEntity'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'                  
+
+    /manager/inspections:
+        description: '## 질문/답변'
+        get:
+            summary: 질/답 (신고접수) 리스트 가져오기
+            description: '> `post` Method도 동일하게 사용 가능'
+            operationId: getComplaintList
+            tags: [ADMIN]
+            requestBody:
+                description: '>'
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/AdminComplaintListRequest'
+            responses:
+                '200':
+                    $ref: '#/components/responses/AdminComplaintListSuccess'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '422':
+                    $ref: '#/components/responses/UnprocessableEntity'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+
+    /manager/inspection_unit:
+        description: '## 질문/답변'
+        get:
+            summary: 질문/답변 신고내역 가져오기
+            description: '> `post` Method도 동일하게 사용 가능'
+            operationId: getInspectionUnit
+            tags: [ADMIN]
+            requestBody:
+                description: '>'
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/AdminInspectionUnitRequest'
+                        example:
+                            type: QUESTION
+                            questionId: 64
+            responses:
+                '200':
+                    $ref: '#/components/responses/AdminInspectionUnitSuccess'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+    
+    /manager/question:
+        description: '## 질문 검색'
+        get:
+            summary: 어드민용 질문 검색
+            description: '> `post` Method도 동일하게 사용 가능'
+            operationId: searchQuestionForAdmin
+            tags: [ADMIN]
+            requestBody:
+                description: '>'
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/AdminSearchQuestionRequest'
+                        example:
+                            adminId: F
+                            bestOnlyForSimilar: true
+                            questionId: 8
+            responses:
+                '200':
+                    $ref: '#/components/responses/SearchQASuccess'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '422':
+                    $ref: '#/components/responses/UnprocessableEntity'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+
+    /manager/questions:
+        description: '## 질문 검색'
+        get:
+            summary: 답변없는 질문 검색
+            description: '> `post` Method도 동일하게 사용 가능'
+            operationId: searchQuestionWithoutAnswer
+            tags: [ADMIN]
+            requestBody:
+                description: '>'
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/AdminSearchDevaluatedRequest'
+                        example:
+                            adminId: F
+            responses:
+                '200':
+                    $ref: '#/components/responses/SearchQASuccess'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '422':
+                    $ref: '#/components/responses/UnprocessableEntity'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'     
+
+    /manager/statistics:
+        description: '## 통계'
+        get:
+            summary: 어드민 대시보드 통계
+            description: | 
+                > `post` Method도 동일하게 사용 가능
+                * 순위 선정용 배치 처리 필요 (eg. 1시간 한번씩 수행)  
+                * 대시보드, 통계 페이지용 API 통합  
+                * 질문/답변 통계 구현 완료  
+                * 신고 통계 구현중
+            operationId: getAdminStatistics
+            tags: [STATISTIC]
+            requestBody:
+                description: '>'
+                required: true
+                content:
+                    application/json:
+                        schema: 
+                            $ref: '#/components/schemas/AdminStatisticsRequest'
+            responses:
+                '200':
+                    $ref: '#/components/responses/AdminStatisticsSuccess'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '422':
+                    $ref: '#/components/responses/UnprocessableEntity'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+
+    /manager/user_management:
+        description: '## 유저 제한/해제'
+        post:
+            summary: 유저 제한 / 해제
+            description: |
+                * 유저 제한하기 (질문.답변.q/r대상 제외시키기)
+                * 유저 제한 해제하기
+            operationId: setUsermanagement
+            tags: [ADMIN]
+            requestBody:
+                description: '>'
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/AdminUserManagementCreationRequest'
+                        examples:
+                            유저 제한하기:
+                                value: 
+                                    adminId: F
+                                    userInfoId: A
+                                    type: RESTRICTION
+                                    description: 운영정책 위반
+                            유저 제한 해제하기:
+                                value: 
+                                    adminId: F
+                                    userInfoId: A
+                                    type: RELEASE
+                                    description: 특별한 사유로 해제
+            responses:
+                '200':
+                    $ref: '#/components/responses/AdminUserManagementCreationSuccess'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '422':
+                    $ref: '#/components/responses/UnprocessableEntity'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+
+    /proxy/tmap/total-search:
+        description: |
+            ## 프록시 TiDC 내부 서비스 접근용
+            > 각 호출대상 서비스에 따라 상이함 (해당 API들은 TiDC 서비스들을 proxy하는 역할만 하므로, 대상 TiDC 내 서비스들이 입력받는 parameter들과 body spec을 그대로 입력받음)
+            > Spec등은 호출 대상 서비스 API 담당자에게 문의 
+            * 각 담당자정보는 https://tde.sktelecom.com/wiki/pages/viewpage.action?pageId=395790584& 페이지 참고
+        get:
+            summary: (Tmap 통합검색 서비스) 위치명 기반 POI 검색
+            description: '>'
+            tags: [PROXY]
+            responses:
+                '200':
+                    description: 'ProxyResponseBody'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+    
+    /proxy/tmap/reverse-geocoding:
+        get:
+            summary: (Tmap reverse geocoding서비스) 사용자 좌표기반 지역명 검색
+            description: '>'
+            tags: [PROXY]
+            responses:
+                '200':
+                    description: 'ProxyResponseBody'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+
+    /proxy/tmap/static-map:
+        get:
+            summary: (Tmap StaticMap 서비스) 정적 지도 이미지 가져오기
+            description: '>'
+            tags: [PROXY]
+            responses:
+                '200':
+                    description: 'ProxyResponseBody'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+
+    /proxy/tmap/dynamic-map:
+         get:
+            summary: (Tmap V2 서비스) 자바스크립트 소스 가져오기
+            description: '>'
+            tags: [PROXY]
+            responses:
+                '200':
+                    description: 'ProxyResponseBody'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+    
+    /proxy/nugu:
+         get:
+            summary: (NUGU 질의 분석기) 사용자 발화내 위치명 검색
+            description: '>'
+            tags: [PROXY]
+            responses:
+                '200':
+                    description: 'ProxyResponseBody'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+
+    /proxy/safety:
+         get:
+            summary: (Safety module) 사용자 발화내 욕설 포함여부 검사
+            description: '>'
+            tags: [PROXY]
+            responses:
+                '200':
+                    description: 'ProxyResponseBody'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+         post:
+            summary: (Safety module) 사용자 발화내 욕설 포함여부 검사 (batch)
+            description: '>'
+            tags: [PROXY]
+            responses:
+                '200':
+                    description: 'ProxyResponseBody'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+
+    /proxy/user-profile:
+         get:
+            summary: (User profile) 유저 프로필 검색
+            description: '>'
+            tags: [PROXY]
+            responses:
+                '200':
+                    description: 'ProxyResponseBody'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'        
+
+    /question:
+        description: '## 질문'
+        post:
+            summary: 질문 등록
+            description: '>'
+            operationId: addQuestion
+            tags: [QUESTION]
+            requestBody:
+                description: '>'
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/QuestionCreationRequest'
+                        example:
+                            userInfoId: A
+                            question: 해운대해수욕장 모임 인원제한 있나요?
+                            type: REALTIME
+                            location:
+                                latitude: 35.1586728
+                                longitude: 129.1598677
+                                domainName: 해운대 해수욕장
+                                poiId: 123412
+                            routingCondition:
+                                ageRange: 2
+                                sex: ALL
+            responses:
+                '201':
+                    $ref: '#/components/responses/QuestionSuccess'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '423': 
+                    $ref: '#/components/responses/Locked'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+        put:
+            summary: 질문 답변 연장, 유사질문 리스트 업데이트
+            description: |
+                * 질문 답변 연장
+                * 유사질문 리스트 업데이트 (backend 전용)
+            operationId: updateQuestion
+            tags: [QUESTION]
+            requestBody:
+                description: '>'
+                required: true
+                content:
+                    application/json:
+                        schema: 
+                            $ref: '#/components/schemas/QuestionUpdateRequest'
+                        examples:
+                            답변 시간 연장:
+                                value:
+                                    questionId: 5
+                                    extensionTime: 3600000
+                            유사질문 리스트 업데이트:
+                                summary: backend 전용
+                                value:
+                                    questionId: 5                                    
+                                    similarQuestionIds: [2, 4]
+            responses:
+                '200':
+                    $ref: '#/components/responses/QuestionSuccess'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '422':
+                    $ref: '#/components/responses/UnprocessableEntity'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+
+    /region/province:
+        description: '## 지역 검색'
+        get:
+            summary: 시도 검색
+            description: '> `post` Method도 동일하게 사용 가능'
+            operationId: searchProvince
+            tags: [REGION]
+            requestBody:
+                description: '>'
+                required: true
+                content:
+                    application/json:
+                        schema: 
+                            $ref: '#/components/schemas/RegionProvinceRequest'
+                        examples:
+                            전체 시도 조회:
+                                value:
+                            특정 시도 조회:
+                                value: 
+                                    province: 북
+            responses:
+                '200':
+                    $ref: '#/components/responses/RegionProvinceSuccess'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '422':
+                    $ref: '#/components/responses/UnprocessableEntity'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+
+    /region/county:
+        description: "## 지역 검색"
+        get:
+            summary: 시군구 검색
+            description: '> `post` Method도 동일하게 사용 가능'
+            operationId: searchCounty
+            tags: [REGION]
+            requestBody:
+                description: '>'
+                required: true
+                content:
+                    application/json:
+                        schema: 
+                            $ref: '#/components/schemas/RegionCountyRequest'
+                        examples:
+                            지정된 시도의 모든 시군구 검색:
+                                value:
+                                    province: [제주특별자치도]
+                            시군구 검색:
+                                value:
+                                    county: 서
+                                    province: [제주특별자치도]
+            responses:
+                '200':
+                    $ref: '#/components/responses/RegionCountySuccess'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '422':
+                    $ref: '#/components/responses/UnprocessableEntity'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+    
+    /remark:
+        description: '## 나도 궁금해요'
+        put:
+            summary: 나도 궁금해요 리스트에 유저 정보 추가 / 삭제
+            description: '>'
+            operationId: updateRemark
+            tags: [REMARK]
+            requestBody:
+                description: '>'
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/RemarkUpdateRequest'
+                        examples:
+                            나도 궁금해요 리스트에 유저 정보 추가:
+                                value: 
+                                    questionId: 5
+                                    userInfoId: B
+                                    type: ADD
+                            나도 궁금해요 리스트에 유저 정보 삭제:
+                                value: 
+                                    questionId: 5
+                                    userInfoId: B
+                                    type: DELETE
+            responses:
+                '201':
+                    $ref: '#/components/responses/RemarkUpdateSuccess'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '409':
+                    $ref: '#/components/responses/Conflict'
+                '422':
+                    $ref: '#/components/responses/UnprocessableEntity'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+    /reward:
+        description: '## 도움이 됐어요'
+        put:
+            summary: 도움이 됐어요 리스트에 유저 정보 추가
+            description: '>'
+            operationId: updateReward
+            tags: [REWARD]
+            requestBody:
+                description: '>'
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/RewardUpdateRequest'
+                        example:
+                            answerId: 7
+                            userInfoId: C                
+            responses:
+                '201':
+                    $ref: '#/components/responses/RewardUpdateSuccess'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '409':
+                    $ref: '#/components/responses/Conflict'
+                '422':
+                    $ref: '#/components/responses/UnprocessableEntity'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+
+    /routing:
+        description: '## 라우팅'
+        post:
+            summary: 라우팅 정보 생성
+            description: '>'
+            operationId: addRoutingInformation
+            tags: [ROUTING]
+            requestBody:
+                description: '>'
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/RoutingCreationRequest'
+                        example:
+                            userInfoIds: [B,C,D,E]
+                            questionId: 5
+                            profiles: 
+                              - group: MAIN
+                                domainName: 해운대구 우동
+                              - group: MAIN
+                                domainName: 유성구 상대동
+                              - group: REALTIME
+                                domainName: 마포구 아현동
+                              - group: RECENT
+                                domainName: 마포구 상암동
+            responses:
+                '201':
+                    $ref: '#/components/responses/RoutingCreationSuccess'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '409':
+                    $ref: '#/components/responses/Conflict'
+                '422':
+                    $ref: '#/components/responses/UnprocessableEntity'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'                
+
+    /search/question:
+        description: '## 검색'
+        get:
+            summary: 단일 질문-답변 검색
+            description: |
+                > `post` Method도 동일하게 사용 가능
+                * userInfoId가 없을 때는 질문 검색만함
+                * userInfoId가 있을 때 A2A userInfo 테이블에 등록여부 확인 및 생성
+                * 질문의 userInfoId와 parameter의 userInfoId가 같은 경우 보낸 질문 `N` 제거
+                * 질문의 userInfoId와 parameter의 userInfoId가 다른 경우 받은 질문 `N` 제거
+                * userInfoId parameter의 역할은 원칙적으로 질문을 특정 유저 ID로 조회함으로써 **받은 질문** 또는 **보낸 질문** 페이지에서 `N` 배지를 없애려는 때에만 사용
+                * 기존에는 해당 유저 ID가 ‘받은 질문’ 또는 **보낸 질문**, **나도 궁금해요**에 해당하는 질문이 아닌 경우에는 Bad request가 발생하도록 하였으나, 
+                임의의 유저 ID로 보낸다고 해도 질문 검색의 본질을 해치는 것은 아니므로 `N` 배지제거 기능은 스킵하고 정상적으로 질문 답변이 검색되도록 변경 (log level WARN 생성)
+            operationId: searchQuestion
+            tags: [SEARCH]
+            requestBody:
+                description: '>'
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SearchQuestionRequest'
+                        examples:
+                            일반적인 질문 검색:
+                                value:
+                                    questionId: 1
+                                    withAnswer: true
+                                    bestOnly: true
+                            my 질문 조회: 
+                                description: |
+                                    * my->받은 질문, my-> 보낸질문에서 질문 조회
+                                    조회 이후 **받은 질문** 목록, **보낸 질문 목록**에서 `N` 배찌 없어짐'
+                                value:
+                                    questionId: 3
+                                    withAnswer: true
+                                    bestOnly: true
+                                    userInfoId: A
+            responses:
+                '200':
+                    $ref: '#/components/responses/SearchQASuccess'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '422':
+                    $ref: '#/components/responses/UnprocessableEntity'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+
+    /search/questions:
+        description: "## 검색"
+        get:
+            summary: 다중 질문-답변 검색
+            description: '> `post` Method도 동일하게 사용 가능'
+            operationId: searchQuestions
+            tags: [SEARCH]
+            requestBody:
+                description: '>'
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SearchQuestionsRequest'
+                        example:
+                            questionIds: [1, 2]
+                            bestOnly: false
+                            withAnswer: true
+            responses:
+                '200':
+                    $ref: '#/components/responses/SearchQASuccess'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '422':
+                    $ref: '#/components/responses/UnprocessableEntity'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+
+    /search/routed:
+        description: "## 검색"
+        get:
+            summary: my -> 받은 질문 / 답변 검색
+            description: '> `post` Method도 동일하게 사용 가능'
+            operationId: searchRouted
+            tags: [SEARCH]
+            requestBody:
+                description: '>'
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SearchRoutedRequest'
+                        example:
+                            userInfoId: B                            
+            responses:
+                '200':
+                    $ref: '#/components/responses/SearchQASuccess'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '422':
+                    $ref: '#/components/responses/UnprocessableEntity'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+
+    /search/sent:
+        description: "## 검색"
+        get:
+            summary: my -> 보낸 질문 / 답변 검색
+            description: '> `post` Method도 동일하게 사용 가능'
+            operationId: searchSent
+            tags: [SEARCH]
+            requestBody:
+                description: '>'
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SearchSentRequest'
+                        example:
+                            target: ALL
+                            userInfoId: D
+            responses:
+                '200':
+                    $ref: '#/components/responses/SearchQASuccess'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '422':
+                    $ref: '#/components/responses/UnprocessableEntity'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'    
+
+    /user_info:
+        description: '## 유저'
+        post:        
+            summary: 유저 정보 등록
+            description: '>'
+            operationId: addUserInfo
+            tags: [USER]
+            requestBody:
+                description: '>'
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UserInfoCreationRequest'
+                        example:
+                            lunaId: A
+                            role: GENERAL
+            responses:
+                '201':
+                    $ref: '#/components/responses/UserInfoSuccess'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '409':
+                    $ref: '#/components/responses/Conflict'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+        put:
+            summary: 유저 정보 수정
+            description: '>'
+            operationId: updateUserInfo
+            tags: [USER]
+            requestBody:
+                description: ''
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UserInfoUpdateRequest'
+                        example:
+                            userInfoId: A
+                            role: ADMIN
+            responses:
+                '200':
+                    $ref: '#/components/responses/UserInfoSuccess'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+        delete:
+            summary: 유저 정보 삭제
+            description: '>'
+            operationId: deleteUserInfo
+            tags: [USER]
+            requestBody:
+                description: '>'
+                required: true
+                content: 
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UserInfoDeleteRequest'
+                        example:
+                            userInfoId: A
+            responses:
+                '200':
+                    $ref: '#/components/responses/UserInfoSuccess'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+
+    /version:
+        description: '## 버전 정보'
+        get:
+            summary: API 버전 정보
+            description: '>'
+            operationId: version
+            tags: [VERSION]
+            responses:
+                '200':
+                    $ref: '#/components/responses/VersionsSuccess'            
+
+components:
+    # 인증 방법 : api key (key 값은 별도 문의)
+    securitySchemes:    
+        apiKey:
+            type: apiKey
+            in: header
+            name: x-api-key
+
+    schemas:
+        #Request Schema
+        ++Request:
+            type: object
+            description: Request Schema 정리 
+
+        AdministrationCreationRequest:
+            type: object
+            title: QAdministrationCreationRequest
+            required: [adminId, questionId]
+            properties:
+                adminId:
+                    $ref: '#/components/schemas/AdminId'
+                    description: '> 어드민 유저'
+                questionId:
+                    type: number
+                    description: '> 담당할 질문 ID'
+
+        AdministrationUpdateRequest:
+            type: object
+            title: QAdministrationUpdateRequest
+            required: [adminId, questionId, type]
+            properties:
+                adminId:
+                    type: string
+                    description: '> 현재 질문을 담당하고있는 어드민 유저 ID'
+                questionId:
+                    $ref: '#/components/schemas/QuestionId'
+                type:
+                    $ref: '#/components/schemas/DelegationType'
+                delegateTo:
+                    type: string
+                    description: '> `required_if=Type DELEGATION`, 질문을 위임할 어드민 유저 ID'
+                    minimum: 1
+                    maximum: 32            
+
+        AdminComplaintListRequest:
+            type: object
+            title: SearchQAComplaintsRequest
+            required: [state]
+            properties:
+                state:
+                    $ref: '#/components/schemas/StateType'
+                adminIds:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/AdminId'
+                    description: '> 어드민 유저 ID 리스트'
+                keyword:
+                    type: string
+                    description: '> 질문 / 답변 검색 내용'
+                page:
+                    $ref: '#/components/schemas/Page'
+                size:
+                    $ref: '#/components/schemas/Size'
+                from:
+                    $ref: '#/components/schemas/From'
+                to:
+                    $ref: '#/components/schemas/To'
+
+
+        AdminInspectionCreationRequest:
+            type: object
+            title: InspectionCreationRequest
+            required: [adminId, qaType]
+            properties:
+                adminId:
+                    $ref: '#/components/schemas/AdminId'
+                qaType:
+                    $ref: '#/components/schemas/QaType'
+                questionId:
+                    type: string
+                    description: '> 검수 대상 질문 ID'
+                answerId:
+                    type: string
+                    description: '> 검수 대상 답변 ID'
+
+        AdminInspectionUpdateRequest:
+            type: object
+            title: InspectionUpdateRequest
+            required: [adminId, qaType, type]
+            properties:
+                adminId:
+                    type: string
+                    description: '> 필드에 명시한 질/답 ID에 대해 현재 검수 권한을 가지고있는 admin의 user info ID '
+                qaType:
+                    $ref: '#/components/schemas/QaType'
+                type:                    
+                    type: string
+                    enum: [DELEGATION, DECISION, ABANDONMENT]
+                    description: '> 업데이트 타입 (위임/검수/해제 결정)'                    
+                delegatedTo:
+                    type: string
+                    description: '> `required_if=type` DELEGATION, 검수권한을 위임할 대상의 admin user info ID'
+                    minimum: 1
+                    maximum: 32
+                decision:
+                    type: string
+                    enum: [NOT_MASKING, MASKING]
+                    description: '> `required_if=type:DECISION`, 검수 결정 (NOT_MASKING or MASKING)'
+                description: 
+                    type: string
+                    description: '> `required_if=type:DECISION`, 검수 결정 사유'
+                questionId:
+                    type: number
+                    description: '> `required_if=qaType:QUESTION`, 업데이트할 검수대상 질문 ID'
+                answerId: 
+                    type: string
+                    description: '> `required_if=qaType:ANSWER`, 업데이트할 검수대상 답변 ID'
+
+        AdminInspectionUnitRequest:
+            type: object
+            title: InspectionUnitGetRequest
+            required: [type]
+            properties:
+                type:
+                    $ref: '#/components/schemas/InspectionType'
+                questionId:
+                    type: number
+                    description: '> `required_if=type QUESTION`, 신고내역 조회 대상 질문 ID'
+                answerId:
+                    type: string
+                    description: '> `required_if=type ANSWER`, 신고내역 조회 대상 답변 ID'
+
+        AdminSearchQuestionRequest:
+            type: object
+            title: SearchForAdminRequest
+            required: [questionId, adminId]
+            properties:
+                questionId:
+                    type: number
+                    description: '> 검색하고자하는 질문 ID'
+                adminId:
+                    type: string
+                    description: '> 검색하는 어드민 유저 ID (a2a.user_info 기준)'
+                bestOnlyForSimilar:
+                    type: boolean
+                    description: '> 유사 질문에 베스트 답변만 포함시키려는 경우'
+
+        AdminSearchDevaluatedRequest:
+            type: object
+            title: SearchDevaluatedRequest
+            required: [state]
+            properties:
+                userInfoIds:
+                    type: array
+                    items:
+                        type: string
+                    description: '> 질문자 유저 ID 리스트. 미지정시 전체 대상 검색'
+                adminIds:
+                    type: array
+                    items:
+                        type: string
+                    description: '> 어드민 유저 ID 리스트 (a2a.user_info 기준) 어드민 미지정시 전체 어드민 대상 검색'
+                state: 
+                    $ref: '#/components/schemas/StateType'
+                keyword:
+                    type: string
+                    description: '> 질문 내용 검색'
+                districts:
+                    type: array
+                    items:
+                        type: string
+                    description: '> 법정동 리스트'
+                sortBy:
+                    type: string
+                    enum: [UPDATED_AT, AVAILABLE_TO, LOCATION, QUESTION_TYPE, USER_ID]
+                    description: '> 정렬 기준'
+                descending: 
+                    $ref: '#/components/schemas/Descending'
+                page: 
+                    $ref: '#/components/schemas/Page'
+                size:
+                    $ref: '#/components/schemas/Size'
+                form:
+                    $ref: '#/components/schemas/From'
+                to:
+                    $ref: '#/components/schemas/To'
+
+        AdminStatisticsRequest:
+            type: object
+            title: AdminStatisticsRequest
+            required: [timeOffset]
+            properties:
+                adminId: 
+                    type: string
+                    description: '> 어드민 유저 ID, 특정 어드민 통계를 받을 때 사용. 생략시 전체 어드민 통계'
+                waitForUpdate:
+                    type: string
+                    description: '> 갱신된 통계값 수령 (지연 발생)'
+                year:
+                    type: boolean
+                    description: '> 연도 지정'
+                month:
+                    type: boolean 
+                    description: '> `required_with:YEAR` 월 지정'
+                day:
+                    type: boolean
+                    description: '> `required_with:MONTH`, 일 지정'
+                timeOffset:
+                    type: number
+                    description: 'time zone 세팅 (기본값 GMT+9(Asia/Seoul)에 해당하는 `9`)'
+                    minimum: -12
+                    maximum: 12
+
+        AdminUserManagementCreationRequest:
+            type: object
+            title: UserManagementCreationRequest
+            required: [userInfoId, adminId, type]
+            properties:
+                userInfoId:
+                    type: string
+                    description: '> 제한/해제 대상 유저 ID'
+                adminId:
+                    type: string
+                    description: '> 어드민 유저 ID (처리담당자)'
+                type:
+                    $ref: '#/components/schemas/UserManagementType'
+                description:
+                    type: string
+                    description: '> 제한/해제 사유'
+
+        #답변 Request Body
+        AnswerCreationRequest:
+            type: object
+            required: [questionId, type]
+            description: '>'
+            properties:
+                userInfoId:
+                    $ref: '#/components/schemas/UserInfoId'
+                questionId:
+                    $ref: '#/components/schemas/QuestionId'
+                type: 
+                    $ref: '#/components/schemas/AnswerType'
+                originAnswerId: 
+                    type: number
+                    description: '> 원 답변(유사질문의 답변) ID'
+                answer:
+                    type: string
+                    description: '> `required_if=type:AUTO`, 답변 Text'
+                locations:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Location'
+
+        #게시글 불만제기하기 Request Body
+        ComplaintRequest:
+            type: object
+            required: [userInfoId, type, reason]
+            properties:
+                userInfoId:
+                    $ref: '#/components/schemas/UserInfoId'
+                type: 
+                    $ref: '#/components/schemas/ComplaintType'
+                questionId:
+                    type: number
+                    description: '> `required_if=type:QUESTION`. 불만대상 질문 ID'
+                answerId:
+                    type: string
+                    description: '> `required_if=type:ANSWER`. 불만대상 답변 ID'
+                reason:
+                    $ref: '#/components/schemas/ReasonType'
+                description:
+                    type: string
+                    description: '> 불만 상세 사유'
+
+        #미러링 Request Body
+        DumpRequest:
+            type: object
+            required: [from]
+            properties:
+                from:
+                    type: string
+                    description: |
+                        > Dump 대상 시작시간 (질문 등록 시간 or 답변 등록 시간)
+                        * `RFC3339` 또는 `ISO 8601` 형식 지원
+                        eg. 2021-12-12T18:00:03.28+09:00 / 2021-12-12T09:00:03.28Z
+                to:
+                    type: string
+                    description: |
+                        > dump 대상 종료시간 (생략시 현재시간)
+                        * `RFC3339` 또는 `ISO 8601` 형식 지원
+                        eg. 2021-12-12T18:00:03.28+09:00 / 2021-12-12T09:00:03.28Z
+                bestOnly:
+                    type: boolean
+                    description: '> 베스트 답변만 검색'
+                unmaskedOnlyForQuestion:
+                    type: boolean
+                    description: '> 질문 마스킹이 안된 질문 / 답변 검색 (질문에 마스킹되어 있으면, 답변도 안찾아짐)'
+                unmaskedOnlyForAnswer:
+                    type: boolean
+                    description: '> 답변 마스킹이 안된 질문 / 답변 검색'
+                debugMode:
+                    type: boolean
+                    description: '> debug 모드 활성화'
+        
+        DumpQuestionAnswerRequest:
+            type: object
+            required: [from, to]
+            properties:
+                from:
+                    type: string
+                    description: |
+                        > Dump 대상 시작시간 (질문 등록 시간 or 답변 등록 시간)
+                        * `RFC3339` 또는 `ISO 8601` 형식 지원
+                        eg. 2021-12-12T18:00:03.28+09:00 / 2021-12-12T09:00:03.28Z
+                to:
+                    type: string
+                    description: |
+                        > dump 대상 종료시간 (생략시 현재시간)
+                        * `RFC3339` 또는 `ISO 8601` 형식 지원
+                        eg. 2021-12-12T18:00:03.28+09:00 / 2021-12-12T09:00:03.28Z
+
+        #질문 Requset
+        QuestionCreationRequest:
+            allOf:
+                - type: object
+                  title: QustionCreation
+                  required: [userInfoId, question, type, routingCondition, location]
+                  properties:
+                    userInfoId:
+                        $ref: '#/components/schemas/UserInfoId'
+                    question:
+                        type: string
+                        description: '> 질문 Text'
+                        minimum: 5
+                        maximum: 100
+                    type: 
+                        $ref: '#/components/schemas/QuestionType'
+                - $ref: '#/components/schemas/RoutingCondition'
+                - $ref: '#/components/schemas/Location'
+
+        QuestionUpdateRequest:
+            type: object
+            required: [questionId]
+            properties:
+                questionId:
+                    $ref: '#/components/schemas/QuestionId'
+                extensionTime:
+                    type: number
+                    description: '> 답변 연장 시간 (ms단위)'
+                similarQuestionIds:
+                    type: array
+                    items:
+                        type: number
+                        description: '> 유사질문 ID 리스트'
+
+        RegionProvinceRequest:
+            type: object
+            required: [province]
+            properties:
+                province:
+                    type: string
+                    description: '> 검색하고자하는 시도 (일부 입력으로 검색 가능)'
+                withAlternatives:
+                    $ref: '#/components/schemas/WithAlternatives'
+
+        RegionCountyRequest:
+            type: object
+            required: [provinces]
+            properties:
+                provinces:
+                    type: array
+                    items:
+                        type: string
+                        description: '> 검색하고자하는 시도 리스트 (일부 입력으로 검색 가능)'
+                county:
+                    type: string
+                    description: '> 검색하고자하는 시군구 리스트 (일부 입력으로 검색 가능)'
+                withAlternatives:
+                    $ref: '#/components/schemas/WithAlternatives'
+
+        #나도 궁금해요 Request Body
+        RemarkUpdateRequest:
+            type: object
+            required: [userInfoId, questionId, type]
+            properties:
+                userInfoId:
+                    type: string
+                    description: '> 나도 궁금해요 누른 A2A 유저'
+                questionId:
+                    $ref: '#/components/schemas/QuestionId'
+                type:
+                    type: string
+                    enum: [ADD, DELETE]
+                    description: '> 나도 궁금해요 대상 유저 추가/삭제'
+
+        #도움이 됐어요 Request Body
+        RewardUpdateRequest:
+            type: object
+            required: [userInfoId, answerId]
+            properties:
+                userInfoId:
+                    type: string
+                    description: '> 도움이 됐어요 누른 A2A 유저'
+                answerId:
+                    $ref: '#/components/schemas/AnswerId'
+
+        RoutingCreationRequest:
+            type: object
+            required: [userInfoIds, questionId, profiles]
+            properties:
+                userInfoIds:
+                    type: array
+                    items:
+                        type: string
+                    description: '> 라우팅 대상 유저 ID list'
+                questionId:
+                    $ref: '#/components/schemas/QuestionId'
+                profiles:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/ProfileForRouting'
+                    description: '> 라우팅 대상 유저 profile 리스트'
+
+        SearchQuestionRequest:
+            type: object
+            required: [questionId]
+            properties:
+                questionId:
+                    type: number
+                    description: '> 검색대상 질문 ID'
+                userInfoId:
+                    type: string
+                    description: '> 검색 주체 유저 Id (조회시 받은 질문 / 보낸 질문 `N` 제거)'
+                withAnswer:
+                    type: boolean
+                    description: '> `required_with=BestOnly, withMyAnswer`, 답변 포함'
+                withMyAnswer:
+                    type: boolean
+                    description: '> `excluded_with=BestOnly`. 답변 중 내가 한 답변만 포함 (`bestOnly랑 같이 사용 불가`)'
+                bestOnly:
+                    type: boolean
+                    description: '> 답변중 베스트 답변만 포함 (`withMyAnswer랑 같이 사용 불가`)'
+
+        SearchQuestionsRequest:
+            type: object
+            required: [questionIds]
+            properties:
+                questionIds:
+                    type: array
+                    items:
+                        type: number
+                    description: '> 검색대상 질문 ID 리스트'
+                withAnswer:
+                    type: boolean
+                    description: '> `required_with=BestOnly`, 답변 포함'
+                bestOnly: 
+                    type: boolean
+                    description: '> 답변 중 베스트 압변만 포함'
+
+        SearchRoutedRequest:
+            type: object
+            required: [userInfoId, target]
+            properties:
+                userinfoId:
+                    type: string
+                    description: '> 받은 질문 대상 유저 ID'
+                target:
+                    $ref: '#/components/schemas/SearchRouteTargetType'
+                sortBy:
+                    type: string
+                    enum: [TIME, REMARK]
+                    description: '정렬 방식 시간 역순 / 나도궁금해요수 & 시간 역순'
+                page:
+                    $ref: '#/components/schemas/Page'
+                size:
+                    $ref: '#/components/schemas/Size'
+                from:
+                    $ref: '#/components/schemas/From'
+                to:
+                    $ref: '#/components/schemas/To'
+        
+        SearchSentRequest:
+            type: object
+            required: [userInfoId, target]
+            properties:
+                userInfoId:
+                    type: string
+                    description: '> 받은 질문 대상 유저 ID'
+                target: 
+                    $ref: '#/components/schemas/SearchSentTargetType'
+                page:
+                    $ref: '#/components/schemas/Page'
+                size:
+                    $ref: '#/components/schemas/Size'
+                from:
+                    $ref: '#/components/schemas/From'
+                to:
+                    $ref: '#/components/schemas/To'
+
+        # 유저 Request Body
+        UserInfoCreationRequest:
+            type: object
+            required:
+                - lunaId
+                - role
+            properties:
+                lunaId:
+                    type: string
+                    description: '> Luna ID (A2A 유저 ID로 활용)'
+                    minimum: 1
+                    maximum: 32
+                role:
+                    $ref: '#/components/schemas/RoleType'
+            example:
+                lunaId: A
+                role: GENERAL
+
+        UserInfoUpdateRequest:
+            type: object
+            properties:
+                userInfoId:
+                    $ref: '#/components/schemas/UserInfoId'
+                role:
+                    $ref: '#/components/schemas/RoleType'
+
+        UserInfoDeleteRequest:
+            type: object
+            properties:
+                userInfoId:
+                    $ref: '#/components/schemas/UserInfoId'
+
+        #Response Schema
+        ++Response:
+            type: object
+            description: Response Schema 정리
+
+        #어드민 Response Body
+        AdministrationCreationResponse:
+            type: object
+            title: QAdministrationCreationResponseBody
+            properties:
+                requestId:
+                    $ref: '#/components/schemas/RequestId'
+                adminstrationId:
+                    type: number
+                    description: '> 질문 관리 ID'
+
+        AdministrationUpdateResponse:
+            type: object
+            title: QAdministrationUpdateResponseBody
+            properties:
+                requestId:
+                    $ref: '#/components/schemas/RequestId'
+                prevAdminstrationId:
+                    type: number
+                    description: '> 이전 질문 관리 ID (위임)'
+                nextAdminstrationId:
+                    type: number
+                    description: '> 새로 생성된 질문 관리 ID (위임)'
+
+        AdminComplaintListResponse:
+            type: object
+            title: QAComplaintsListResponseBody
+            properties:
+                body:
+                    allOf:
+                      - $ref: '#/components/schemas/ComplaintForList'
+                      - type: object
+                        properties:
+                            requestId:
+                                $ref: '#/components/schemas/RequestId'
+                            totalCount:
+                                type: number
+                                description: '> 신고된 질문 / 답변 수'
+
+        AdminInspectionResponse:
+            type: object
+            title: InspectionResponseBody
+            properties:
+                requestId:
+                    $ref: '#/components/schemas/RequestId'
+                InspectionId:
+                    $ref: '#/components/schemas/InspectionId'
+
+        AdminInspectionUpdateResponse:
+            type: object
+            title: InspectionUpdateResponseBody
+            properties:
+                prevInspectionId:
+                    type: number
+                    description: '> 이전 검수 ID (위임)'
+                newInspectionId:
+                    type: number
+                    description: '> 새로 생성된 검수 ID (위임)'
+
+        AdminInspectionUnitResponse:
+            type: object
+            title: InspectionUnitResponseBody
+            properties:
+                body:
+                    type: object
+                    properties:
+                        requestId:
+                            $ref: '#/components/schemas/RequestId'
+                        inspectionUnit:
+                            type: object
+                            properties:
+                                target:
+                                    $ref: '#/components/schemas/InspectionType'
+                                question:
+                                    $ref: '#/components/schemas/Question'
+                                answser:
+                                    $ref: '#/components/schemas/Answer'
+                                    description: 질문 신고인 경우에는 보이지 않음
+                                lastComplaintAt:
+                                    $ref: '#/components/schemas/LastComplaintAt'
+                                complaints:
+                                    type: array
+                                    items:
+                                        $ref: '#/components/schemas/Complaint'
+                                inspections:
+                                    type: array
+                                    items:
+                                        $ref: '#/components/schemas/Inspection'
+
+        AdminStatisticsResponse:
+            type: object
+            title: AdminStatisticsResponseBody
+            properties:
+                body:
+                    type: object
+                    properties:
+                        requestId:
+                            $ref: '#/components/schemas/RequestId'
+                        statistics:
+                            type: object
+                            properties:
+                                monthlyStatistics:
+                                    $ref: '#/components/schemas/Statistic'
+                                monthlyAdminStatistics:
+                                    $ref: '#/components/schemas/AdminStatistic'
+                                dailyStatistics:
+                                    $ref: '#/components/schemas/Statistic'
+                                dailyAdminStatistics:
+                                    $ref: '#/components/schemas/AdminStatistic'                       
+
+        AdminUserManagementResponse:
+            type: object
+            title: UserManagementCreationResponseBody
+            properties:
+                body:
+                    type: object
+                    properties:
+                        requestId:
+                            $ref: '#/components/schemas/RequestId'
+                        userManagementId:
+                            type: string
+                            description: '> 생성된 유저 관리 ID'
+
+        #답변 Response Body
+        AnswerCreationResponse:
+            type: object
+            title: AnswerCreationResponseBody
+            properties:
+                body:
+                    type: object
+                    properties:
+                        requestId:
+                            $ref: '#/components/schemas/RequestId'
+                        answerId:
+                            $ref: '#/components/schemas/AnswerId'
+                        userInfoId:
+                            $ref: '#/components/schemas/UserInfoId'
+
+        #불만제기 Response Body
+        ComplaintResponse:
+            type: object
+            title: ComplaintResponseBody
+            properties:
+                body:
+                    type: object
+                    properties:
+                        requestId:
+                            $ref: '#/components/schemas/RequestId'
+                        qaComplaintId:
+                            $ref: '#/components/schemas/QaComplaintId'
+
+        ## 전체 공통 Schema
+        CommonResponse:
+            type: object
+            properties:
+                statusCode: 
+                    type: number
+                headers:
+                    type: string
+                multiValueHeaders:
+                    type: string
+
+        ErrorResponse:
+            allOf:
+                - $ref: '#/components/schemas/CommonResponse'
+                - type: object
+                  title: ErrorResponseBody
+                  properties:
+                    body:
+                        type: object
+                        properties:
+                            requestId:
+                                $ref: '#/components/schemas/RequestId'
+                            reason:
+                                type: string
+                                description: 에러 발생 상세 사유
+
+
+        #질문 Response Body
+        QuestionResponse:
+            type: object
+            title: QuestionResponseBody
+            properties:
+                body:
+                    type: object
+                    properties:
+                        requestId:
+                            $ref: '#/components/schemas/RequestId'
+                        questionId:
+                            $ref: '#/components/schemas/QuestionId'
+
+        QuestionForSearch:
+            type: object
+            properties:
+                questionId:
+                    type: number
+                    description: '> 질문 ID'
+                groupId:
+                    type: string
+                    description: '> 질문&답변 그룹 ID'
+                userInfoId: 
+                    type: string
+                    description: '> 질문자 ID'
+                type:
+                    $ref: '#/components/schemas/QuestionType'
+                question:
+                    type: string
+                    description: '> 질문 내용'
+                allocatedAdminId:
+                    oneOf:
+                      - type: string
+                        title: '담당 Admin Id'
+                        description: '> 담당 admin ID (값이 0일시 담당자 없음 의미)'
+                      - type: number
+                        title: '할당된 Admin Id'
+                        description: '> 할당된 어드민 유저 ID (ID 정보 없을 시 자동제거됨)'
+                    description: '> 두 속성 name과 type 확인 필요함. wiki 문서에는 property 명이 같고, type이 다르게 나와있음'
+                similarQuestionIds:
+                    type: array
+                    description: '> 유사 질문 ID 리스트'
+                    items:
+                        type: number
+                location:
+                    $ref: '#/components/schemas/Location'
+                routingCondition:
+                    $ref: '#/components/schemas/RoutingCondition'
+                masked:
+                    $ref: '#/components/schemas/Masked'
+                remarks:
+                    type: array
+                    description: '> 해당 질문에 나도 궁금해요른 누른 유저 ID 리스트'
+                    items:
+                        type: number
+                nAnswers:
+                    type: number
+                    description: '> 답변 개수'
+                answers:
+                    type: array
+                    items:
+                        type: object
+                        properties:
+                            answerId:
+                                type: number
+                                description: '> 질문 ID'
+                            userInfoId:
+                                type: string
+                                description: '> 답변자 ID'
+                            answer:
+                                type: string
+                                description: '> 답변 내용'
+                            locations:
+                                type: array
+                                description: '> 답변에 설정한 위치정보'
+                                items:    
+                                    $ref: '#/components/schemas/Location'
+                            best:
+                                type: boolean
+                                description: '> 베스트답변 여부'
+                            type:
+                                type: string
+                                enum: [GENERAL, GENERAL_AUTO, ADMIN, ADMIN_AUTO]
+                                description: '> 답변 타입'
+                            originAnswerId:
+                                type: number
+                                description: '> 원 답변 ID'
+                            originQuestionId:
+                                type: number
+                                description: '> 원 질문 ID'
+                            profile:
+                                $ref: '#/components/schemas/ProfileForAnswer'
+                            masked:
+                                $ref: '#/components/schemas/Masked'
+                            rewards:
+                                type: array
+                                description: '> 해당 답변에 도움이됐어요를 누른 유저 ID 리스트'
+                                items:
+                                    type: number
+                            updatedAt:
+                                type: string
+                                description: '> 답변 갱신시간 (현재는 답변 생성시간과 동일)'
+                            createdAt:
+                                type: string
+                                description: '> 답변 생성시간'
+                newlyUpdated:
+                    type: boolean
+                    description: '> N배지 표시 여부 (false시 자동제거됨)'
+                qAdministrations:
+                    type: array
+                    items:
+                        type: object
+                        properties:
+                            adminId:
+                                type: string
+                                description: '> 대상 어드민 유저 ID (a2a.user_info 기준)'
+                            answerId:
+                                type: number
+                                description: '> 답변을 등록했을 경우, 답변 ID (아닌 경우 0)'
+                            delegatedTo:
+                                type: string
+                                description: '> 다른 어드민 유저에게 위임했을 때, 위임한 어드민 유저 ID'
+                            managementType:
+                                type: string
+                                enum: [PENDING, DELEGATION, ANSWER]
+                                description: '> 처리 상태'
+                            managedAt:
+                                type: string
+                                description: '> 처리 시간'
+                            createdAt:
+                                type: string
+                                description: '> 생성 시간'
+                similarQuestions:
+                    type: array
+                    description: '`array(QuestionForSearch)`, > 유사 질문/답변 리스트 (정보가 없을 시 자동제거됨), '
+                    items:
+                        type: object
+                recentActionAt:
+                    type: string
+                    description: '> 질문과 관련 마지막 활동 시간 (질문하기, 답변 달기, 나도 궁금해도 달기)'
+                updatedAt:
+                    type: string
+                    description: '> 질문 갱신시간 (현재는 질문 생성시간과 동일)'
+                createdAt:
+                    type: string
+                    description: '> 질문 생성시간'
+
+        RegionProvinceResponse:
+            type: object
+            title: RegionProvinceResponseBody
+            properties:
+                body:
+                    type: object
+                    properties:
+                        requestId:
+                            $ref: '#/components/schemas/RequestId'
+                        provinces:
+                            type: array
+                            items:
+                                type: string
+                                description: '> 법정동 주도 (특별시, 광역시, 도)'
+                        alternativeNames:
+                            type: array
+                            items:
+                                type: string
+                                description: '> 비정규 이름'                            
+        
+        RegionCountyResponse:
+            type: object
+            title: RegionCountyResponseBody
+            properties:
+                body:
+                    type: object
+                    properties:
+                        requestId:
+                            $ref: '#/components/schemas/RequestId'
+                        counties:
+                            type: array
+                            items:
+                                $ref: '#/components/schemas/County'
+                        
+        #나도 궁금해요 Response Body
+        RemarkResponse:
+            type: object
+            title: RemarkResponseBody
+            properties:
+                body:
+                    type: object
+                    properties:
+                        requestId:
+                            $ref: '#/components/schemas/RequestId'
+                        remarkId:
+                            $ref: '#/components/schemas/RemarkId'
+
+        #나도 궁금해요 Response Body
+        RewardResponse:
+            type: object
+            title: RewardResponseBody
+            properties:
+                body:
+                    type: object
+                    properties:
+                        requestId:
+                            $ref: '#/components/schemas/RequestId'
+                        remarkId:
+                            $ref: '#/components/schemas/RewardId'
+
+        RoutingCreationResponse:
+            type: object
+            title: RoutingCreationResponse
+            properties:
+                body: 
+                    type: object
+                    properties:
+                        requestId:
+                            $ref: '#/components/schemas/RequestId'
+                        routingId:
+                            type: string
+                            description: '> 생성된 라우팅 ID'
+
+        #미러링 Response Body
+        SearchQAResponse:
+            type: object
+            title: SearchQAResponseBody
+            properties:
+                body:
+                    type: object
+                    properties:
+                        requestId:
+                            $ref: '#/components/schemas/RequestId'
+                        questions:
+                            type: array
+                            description: '> QuestionForSearch'
+                            items:
+                                $ref: '#/components/schemas/QuestionForSearch'
+                        totalCount:
+                            type: number
+                            description: '> 검색대상 (from, to 적용)'
+                        popupType:
+                            type: string
+                            enum: [NONE, USAGE, SETTING]
+                            description: | 
+                                > 화면에 띄워야하는 popup 종류
+                                * NONE : popup 띄울 필요 없음
+                                * USAGE : 큐피드 사용안내 popup
+                                * SETTING : 알람설정 유도 popup
+                        from:
+                            type: string
+                            description: '> 검색 대상 시작 시간 (정보가 없을 시 자동제거됨)'
+                        to:
+                            type: string
+                            description: '> 검색 대상 종료 시간 (정보가 없을 시 자동제거됨)'
+
+        #유저 Response Body
+        UserInfoResponse:
+            type: object 
+            title: UserInfoResponseBody
+            properties:
+                body:
+                    type: object
+                    properties:                              
+                        requestId:
+                            $ref: '#/components/schemas/RequestId'
+                        userInfoId: 
+                            $ref: '#/components/schemas/UserInfoId'
+
+        #버전정보 Response Body
+        VersionsResponse:
+            type: object
+            title: VersionsResponseBody
+            properties:
+                body:
+                    type: object
+                    properties:
+                        requestId:
+                            $ref: '#/components/schemas/RequestId'
+                        versions:
+                            type: object
+                            properties:
+                                revision:
+                                    type: string
+                                    description: '> API revision'
+                                buildTimestamp:
+                                    type: string
+                                    description: '> 빌드 시작시간'
+                                gitCommitHash:
+                                    type: string
+                                    description: '> Git commit hash'
+                                gitTag:
+                                    type: string
+                                    description: '> Git tag'
+        
+        #Property Schema
+        ++Property:
+            type: object
+            description: 재사용 Property 정리
+        
+        #공통 property
+        AdminId:
+            type: string
+            description: '> admin의 user info ID'
+            minimum: 1
+            maximum: 32
+            
+        AdminStatistic:
+            type: object
+            properties:
+                date:
+                    $ref: '#/components/schemas/Date'
+                adminId:
+                    $ref: '#/components/schemas/AdminId'
+                nQuestions:
+                    type: number
+                    description: '> 어드민에게 할당된 질문수'
+                nAnsweredQuestions:
+                    type: number
+                    description: '> 어드민이 답변한 질문수'
+                averageAnswerDelay:
+                    type: number
+                    description: '> 답변까지 걸린 평균 시간'
+                answerAdminRank:
+                    type: number
+                    description: '> 답변 순위'
+                nComplaints:
+                    type: number
+                    description: '> 어드민에게 할당 된 신고 수'
+                nInspectedComplaints: 
+                    type: number
+                    description: '> 어드민에게 처리한 신고수'
+                averageInspectionDelay:
+                    type: number
+                    description: '> 신고까지 걸린 평균시간'
+                inspectionRank:
+                    type: number
+                    description: '> 신고 처리 순위'
+                createdAt:
+                    type: string
+                    description: '> 통계 생성시점'        
+
+        Answer:
+            type: object
+            description: '> 질문 신고인 경우에는 보이지 않음'
+            properties:
+                id: 
+                    type: number
+                    description: '> 답변 ID'
+                userInfoId:
+                    type: string
+                    description: '> 답변 작성한 유저 ID'
+                message:
+                    type: string
+                    description: '> 답변 내용'
+                createdAt:
+                    type: string
+                    description: '> 답변 작성일'
+            
+        AnswerId:
+            type: string
+            description: '> 답변 ID'
+
+        Complaint:
+            type: object
+            properties:
+                userInfoId:
+                    type: string
+                    description: '> 신고한 유저 ID'
+                reason:
+                    type: string
+                    description: '> 신고 유형'
+                inspected:
+                    $ref: '#/components/schemas/Inspected'
+                createdAt:
+                    type: string
+                    description: 신고일
+        
+        ComplaintForList:
+            type: object
+            properties:
+                type:
+                    $ref: '#/components/schemas/ComplaintType'
+                    description: '> 질문 / 답변'
+                id:
+                    type: number
+                    description: '> 질문 / 답변 Id'
+                message:
+                    type: string
+                    description: '> 질문 / 답변 내용'
+                lastComplaintAt:
+                    $ref: '#/components/schemas/LastComplaintAt'
+                    description: '> 최신 신고 시간'
+                masked:
+                    $ref: '#/components/schemas/Masked'
+                inspectionIds:
+                    type: array
+                    items:
+                        type: integer
+                    description: '> 어드민 담당 내역'
+                adminId:
+                    $ref: '#/components/schemas/AdminId'
+                    description: '> 현재 담당 어드민' 
+                inspected:
+                    $ref: '#/components/schemas/Inspected'
+                    description: '> 신고 처리 여부 (eg. 어드민 할당 안됨 처리안됨 → 미할당 미처리 상태 / 어드민 할당 처리 안됨 → 할당 미처리 / 어드민 할당 처리됨 → 처리 완료)'
+                createdAt:
+                    $ref: '#/components/schemas/CreatedAt'
+                    description: '> 신고된 질문/답변의 생성 시간'
+                updatedAt:
+                    $ref: '#/components/schemas/UpdatedAt'
+                    description: '> 신고된 질문/답변의 최근 갱신 시간'
+
+        County:
+            type: object
+            properties:
+                province: 
+                    $ref: '#/components/schemas/Province'
+                county:
+                    type: string
+                    description: '> 법정동 시군구'
+                fullName: 
+                    type: string
+                    description: '> 주도 + 시군구'
+                alternativeNames:
+                    type: array
+                    items: 
+                        type: string
+                    description: '> 비정규 이름'
+
+        CreatedAt:
+            type: string
+            description: '> 작성일'
+            
+        Date:
+            type: number
+            description: '> 날짜 표시 (eg. 20211200)'
+
+        Descending: 
+            type: boolean
+            description: '> 정렬 방향(기본값:내림차순)'
+
+        From:
+            type: string
+            description: '> `type:timestamp`, 검색 기간 (default=1년전)'
+
+        Inspected:
+            type: boolean
+            description: '> 신고 처리 여부 (eg. 어드민 할당 안됨 처리안됨 → 미할당 미처리 상태 / 어드민 할당 처리 안됨 → 할당 미처리 / 어드민 할당 처리됨 → 처리 완료)'
+
+        Inspection:
+            type: object
+            properties:
+                id: 
+                    type: number
+                    description: '> 신고 처리 ID'
+                adminId:
+                    type: string
+                    description: '> 담당 어드민 유저 ID'
+                managementType:
+                    type: string
+                    enum: [PENDING, DELEGATION, NOT_MASKING, MASKING]
+                    description: '> 처리 상태'
+                description: 
+                    type: string
+                    description: '> 처리내역'
+                managedAt:
+                    type: string
+                    description: '> 처리일'
+                createdAt:
+                    type: string
+                    description: '> 어드민 담당일'
+
+        InspectionId:
+            type: number
+            description: '> 검수 ID'
+
+        LastComplaintAt:
+            type: string
+            description: '> 최신 신고일'
+
+        Location:
+            type: object
+            required: [name, longitude, domainName, latitude]
+            properties:
+                name:
+                    type: string
+                    description: '> 위치의 위치명'
+                    example: '해운대 해수욕장'
+                domainName:
+                    type: string
+                    description: '> 위치의 시/구 단위 행정구역명. (level2 까지만 입력)'
+                    example: '부산시 해운대구'
+                longitude:
+                    type: number
+                    description: '> 위치의 경도'
+                latitude:
+                    type: number
+                    description: '> 위치의 위도'
+                poiId:
+                    type: string
+                    description: '> 해당 위치의 Tmap POI id 값'
+
+        Masked:
+            type: boolean
+            description: '> 마스킹 여부'
+
+        ManagedAt:
+            type: string
+            description: '> 처리일'
+
+        Statistic:
+            type: object
+            properties:
+                date:
+                    $ref: '#/components/schemas/Date'
+                nQuestions:
+                    type: number
+                    description: '> 질문 수'
+                nNotAnsweredQuestions:
+                    type: number
+                    description: '> 답변이 없는 질문 수'
+                nUrgentNotAnsweredQuestions:
+                    type: number
+                    description: '> 종료 10분 내 질문 수'
+                nAnsweredQuestions:
+                    type: number
+                    description: '> 답변 된 질문 수'
+                nAdminAnsweredQuestions:
+                    type: number
+                    description: '> 어드민이 답변한 질문수'
+                nComplaints:
+                    type: number
+                    description: '> 신고 수'
+                nInspectedComplaints: 
+                    type: number
+                    description: '> 처리 된 신고 수'
+                createdAt:
+                    type: string
+                    description: '> 통계 생성시점'
+
+        Page:
+            type: number
+            description: '> 몇 번째 페이지 (default=1)'
+            default: 1
+
+        ProfileForAnswer:
+            type: object
+            description: |
+                > 해당 답변 게시자의 위치 프로파일 정보 (아래와 같은 답변자 위치 프로파일 텍스트를 생성하기 위해 다른정보들과 조합되어 사용됨)
+                * 예시1: 어드민 일반 답변 위치프로파일 텍스트 생성 시나리오
+                > 1. answer의 type field값이 ADMIN
+                > 2. 해당 profile field의 group 값이 ADMIN
+                > 3. 해당 profile field의 domainName 값이 '부산 해운대구'
+                > → "부산 해운대구를 잘 알아요" text 로 변환하여 출력
+                   
+                * 예시2: 일반 사용자의 일반 질문 위치프로파일 텍스트 생성 시나리오
+                > 1. question의 type field값이 GENERAL
+                > 2. answer의 type field값이 GENERAL_AUTO
+                > 3. 해당 profile field의 group 값이 MAIN
+                > 4. 해당 profile field의 domainName 값이 '해운대구 우동'
+                > -> "해운대구 우동 주변에 주로 머물러요" text로 변환하여 출력 
+            properties:
+                group:
+                    $ref: '#/components/schemas/AnswerGroupType'
+                domainName: 
+                    type: string
+                    description: 지역명 Text (시/구 단위 케이스별로 다름)
+
+        ProfileForRouting:
+            type: object
+            description: '> 라우팅 대상 유저 profile 리스트'
+            properties:
+                group:
+                    type: string
+                    enum: [MAIN, RECENT, REALTIME]
+                    description: '> 라우팅 그룹'
+                domainName:
+                    type: string
+                    description: '> 지역명 (engine에서 리턴되는 2/3 level 지역명)'
+
+        Province:
+            type: string
+            description: '> 법정도 주도'
+
+        Question:
+            type: object
+            properties:
+                id: 
+                    type: number
+                    description: '> 질문 ID'
+                userInfoId:
+                    type: string
+                    description: '> 질문 작성한 유저 ID'
+                message:
+                    type: string
+                    description: '> 질문 내용'
+                createdAt:
+                    type: string
+                    description: '> 질문 작성일'
+
+        QuestionId:
+            type: number
+            description: '> 질문 ID'
+
+        QaComplaintId:
+            type: number
+            description: '> 신고 ID'
+
+        RequestId:
+            type: string
+            description: '> 요청 ID (API 호출시 AWS API gateway에서 자동 생성되는 ID)'
+
+        RemarkId:
+            type: string
+            description: '> 나도 궁금해요 ID'
+
+        RewardId:
+            type: string
+            description: '> 도움이 됐어요 ID'
+
+        RoutingCondition:
+            type: object
+            required: [ageRange, sex]
+            properties:
+                sex:
+                    $ref: '#/components/schemas/SexType'
+                ageRange:
+                    type : number
+                    description: '> 질문 대상 나이대'
+                    minimum: 0
+                    maximum: 7
+                    example: 1
+
+        Size:
+            type: number
+            description: '> 페이지만 검색 질문수 (default=30)'
+            default: 30
+
+        To:
+            type: string
+            description: '> `type:timestamp`, 검색 기간 (default=now)'
+
+        TotalCount:
+            type: number
+            description: '> 총 수'
+
+        UpdatedAt:
+            type: string
+            description: '> 수정 시간'
+
+        UserInfoId:
+            type : string
+            description: '> A2A 유저 ID'
+            minimum: 1
+            maximum: 32
+            example: 1
+
+        WithAlternatives:
+            type: string
+            description: '> 비정규 지명 추가 출력'
+
+        #Enum Schema
+        ++Enum:
+            type: object
+            description: Enum Schema 정리
+
+        AnswerType:
+            type: string
+            enum: [GENERAL, AUTO]
+            description: '> 답변 타입 (일반/자동)'
+        
+        AnswerGroupType:
+            type: string
+            enum: [MAIN, RECENT, REALTIME, ADMIN]
+
+        ComplaintType:
+            type: string
+            enum: [QUESTION, ANSWER]
+            description: '> 게시물 종류 (질문/답변)'
+
+        DecisionType:
+            type: string
+            enum: [NOT_MASKING, MASKING]
+            description: '> 검수 결정 (NOT_MASKING or MASKING)'
+
+        DelegationType:
+            type: string
+            enum: [DELEGATION, ABANDONMENT]
+            description: '> 담당정보 업데이트 타입 (위임/해제)'
+
+        InspectionType:
+            type: string
+            enum: [ANSWER, QUESTION]
+            description: '> 신고대상 유형 (질문/답변)'
+
+        QaType:
+            type: string
+            enum: [QUESTION, ANSWER]
+            description: '> 검수대상 타입 (질문/답변)'
+
+        QuestionType:
+            type: string
+            enum: [GENERAL, REALTIME]
+            description: '> 질문 유형 (일반, 실시간)'
+
+        ReasonType:
+            type: string
+            enum: [MEANINGLESS, HATE_SPEECH, OBSCENITY, ADVERTISEMENT, ILLEGAL, PRIVACY, REDUNDANCY, MASKING_OBJECTION, OTHER]
+            description: '> 불만 사유'
+
+        RoleType:
+            type: string
+            enum: [GENERAL, ADMIN, SUPER_ADMIN, SYSTEM_ADMIN]        
+            description: '> 유저 역할'
+
+        SearchRouteTargetType:
+            type: string
+            enum: [ALL, AVAILABLE, DONE, EXPIRED]
+            description: '> 검색 대상 전체 / 답변 가능 / 답변 완료 / 실시간 질문 답변 불가'
+
+        SearchSentTargetType:
+            type: string
+            enum: [ALL, MY_QUESTION, REMARKED]
+            description: '> 검색 대상 전체 / 내질문 / 나도궁금해요'
+
+        SexType:
+            type: string
+            enum: [ALL, MALE, FEMALE]
+            description: '> 성별'
+
+        StateType:
+            type: string
+            enum: [ALL, WAITING, DONE]
+            description: '> 처리 상태. 전체 / 미처리 / 처리완료'
+
+        UserManagementType:
+            type: string
+            enum: [RESTRICTION, RELEASE]
+            description: '> 유저 관리 타입 (제한/해제)'
+
+    ##Parameters
+    #parameters:
+
+    #Request Body
+    #requestBodies:
+
+    ## Response
+    responses:
+        AdministrationCreationSuccess:
+            description: Success
+            content:
+                application/json:
+                    schema:
+                        allOf:
+                            - $ref: '#/components/schemas/CommonResponse'
+                            - $ref: '#/components/schemas/AdministrationCreationResponse'
+
+        AdministrationUpdateSuccess:
+            description: Success
+            content:
+                application/json:
+                    schema:
+                        allOf:
+                            - $ref: '#/components/schemas/CommonResponse'
+                            - $ref: '#/components/schemas/AdministrationUpdateResponse'
+
+        AdminComplaintListSuccess:
+            description: Success
+            content:
+                application/json:
+                    schema:
+                        allOf:
+                          - $ref: '#/components/schemas/CommonResponse'
+                          - $ref: '#/components/schemas/AdminComplaintListResponse'
+
+        AdminInspectionCreationSuccess:
+            description: Success
+            content:
+                application/json:
+                    schema:
+                        allOf:
+                            - $ref: '#/components/schemas/CommonResponse'
+                            - type: object
+                              title: InspectionCreationResponseBody
+                              properties: 
+                                body: 
+                                    $ref: '#/components/schemas/AdminInspectionResponse'
+        
+        AdminInspectionUpdateSuccess:
+            description: Success
+            content:
+                application/json:
+                    schema:
+                        allOf:
+                          - $ref: '#/components/schemas/CommonResponse'
+                          - type: object
+                            title: InspectionUpdateResponseBody
+                            properties:
+                                body:
+                                    allOf:
+                                      - $ref: '#/components/schemas/AdminInspectionResponse'
+                                      - $ref: '#/components/schemas/AdminInspectionUpdateResponse'
+
+        AdminInspectionUnitSuccess:
+            description: Success
+            content:
+                application/json:
+                    schema:
+                        allOf:
+                          - $ref: '#/components/schemas/CommonResponse'
+                          - $ref: '#/components/schemas/AdminInspectionUnitResponse'
+
+        AdminStatisticsSuccess:
+            description: Success
+            content:
+                application/json:
+                    schema:
+                        allOf:
+                          - $ref: '#/components/schemas/CommonResponse'
+                          - $ref: '#/components/schemas/AdminStatisticsResponse'                            
+
+        AdminUserManagementCreationSuccess:
+            description: Success
+            content:
+                application/json:
+                    schema:
+                        allOf:
+                          - $ref: '#/components/schemas/CommonResponse'
+                          - $ref: '#/components/schemas/AdminUserManagementResponse'
+
+        AnswerCreationSuccess:
+            description: Success
+            content:
+                application/json:
+                    schema:
+                        allOf:
+                            - $ref: '#/components/schemas/CommonResponse'
+                            - $ref: '#/components/schemas/AnswerCreationResponse'
+
+        ComplaintSuccess:
+            description: Success
+            content:
+                application/json:
+                    schema:
+                        allOf:
+                          - $ref: '#/components/schemas/CommonResponse'
+                          - $ref: '#/components/schemas/ComplaintResponse'
+
+        RegionProvinceSuccess:
+            description: Success
+            content:
+                application/json:
+                    schema:
+                        allOf:
+                          - $ref: '#/components/schemas/CommonResponse'
+                          - $ref: '#/components/schemas/RegionProvinceResponse'
+
+        RegionCountySuccess:
+            description: Success
+            content:
+                application/json:
+                    schema:
+                        allOf:
+                          - $ref: '#/components/schemas/CommonResponse'
+                          - $ref: '#/components/schemas/RegionCountyResponse'
+
+        RemarkUpdateSuccess:
+            description: Success
+            content:
+                application/json:
+                    schema:
+                        allOf:
+                            - $ref: '#/components/schemas/CommonResponse'
+                            - $ref: '#/components/schemas/RemarkResponse'
+        
+        RewardUpdateSuccess:
+            description: Successs
+            content:
+                application/json:
+                    schema:
+                        allOf:
+                            - $ref: '#/components/schemas/CommonResponse'
+                            - $ref: '#/components/schemas/RewardResponse'
+
+        RoutingCreationSuccess:
+            description: Success
+            content:
+                application/json:
+                    schema:
+                        allOf:
+                            - $ref: '#/components/schemas/CommonResponse'
+                            - $ref: '#/components/schemas/RoutingCreationResponse'
+
+        QuestionSuccess:
+            description: Success
+            content:
+                application/json:
+                    schema:
+                        allOf:
+                            - $ref: '#/components/schemas/CommonResponse'
+                            - $ref: '#/components/schemas/QuestionResponse'
+
+        SearchQASuccess:
+            description: Success
+            content:
+                application/json:
+                    schema:
+                        allOf:
+                            - $ref: '#/components/schemas/CommonResponse'
+                            - $ref: '#/components/schemas/SearchQAResponse'
+
+        UserInfoSuccess:
+            description: Success
+            content:
+                application/json:
+                    schema:
+                        allOf:
+                          - $ref: '#/components/schemas/CommonResponse'
+                          - $ref: '#/components/schemas/UserInfoResponse'
+            links:
+                UpdateUserInfo:
+                    operationId: updateUserInfo
+                    requestBody: '$response.body#/body/userInfoId'
+                    description: '> The `userInfoId` value returned in the response can be used as the the `userInfoId` property in `PUT /userInfo`.'
+                DeleteUserInfo:
+                    operationId: deleteUserInfo
+                    requestBody: '$response.body#/body/userInfoId'
+
+        VersionsSuccess:
+            description: Success
+            content:
+                application/json:
+                    schema:
+                        allOf:
+                            - $ref: '#/components/schemas/CommonResponse'
+                            - $ref: '#/components/schemas/VersionsResponse'
+                        
+        ++ErrorResponse:
+            type: object
+            description: Error response 정리
+
+        BadRequest:
+            description: 400 - BadRequest
+            content:
+                application/json:
+                    schema: 
+                        $ref: '#/components/schemas/ErrorResponse'
+
+        Conflict:
+            description: 409 - Conflict
+            content:
+                application/json:
+                    schema: 
+                        $ref: '#/components/schemas/ErrorResponse'
+
+        UnprocessableEntity:
+            description: 422 - UnprocessableEntity
+            content:
+                application/json:
+                    schema: 
+                        $ref: '#/components/schemas/ErrorResponse'
+
+        Locked: 
+            description: 423 - Locked
+            content:
+                application/json:
+                    schema: 
+                        $ref: '#/components/schemas/ErrorResponse'
+
+        InternalServerError:
+            description: 500 - InternalServerError
+            content:
+                application/json:
+                    schema: 
+                        $ref: '#/components/schemas/ErrorResponse'
+
+tags:
+  - name: ADMIN
+    description: '## 어드민'
+  - name: ANSWER
+    description: '## 답변'
+  - name: COMPLAINT
+    description: '## 게시글 불만제기'
+  - name: MIRRORING
+    description: '## 미러링'
+  - name: PROXY
+    description: |
+        ## 프록시 TiDC 내부 서비스 접근용
+        > 각 호출대상 서비스에 따라 상이함 (해당 API들은 TiDC 서비스들을 proxy하는 역할만 하므로, 대상 TiDC 내 서비스들이 입력받는 parameter들과 body spec을 그대로 입력받음)
+        > Spec등은 호출 대상 서비스 API 담당자에게 문의 
+        * 각 담당자정보는 https://tde.sktelecom.com/wiki/pages/viewpage.action?pageId=395790584& 페이지 참고
+  - name: QUESTION
+    description: '## 질문'
+  - name: REGION
+    description: '## 지역검색'
+  - name: REMARK
+    description: '## 나도 궁금해요'
+  - name: REWARD
+    description: '## 도움이 됐어요'
+  - name: ROUTING
+    description: '## 라우팅'
+  - name: SEARCH
+    description: '## 검색'
+  - name: STATISTIC
+    description: '## 통계'
+  - name: USER
+    description: '## 유저'
+  - name: VERSION
+    description: '## 버전 정보'
