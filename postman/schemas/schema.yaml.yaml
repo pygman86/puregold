@@ -5,7 +5,7 @@ openapi: 3.0.0
 info:
     version: 1.0-beta-20220207
     title: QFeed API
-    description: '>'
+    description: '> '
 
 servers:
   - url: https://api-dev.a2a.apollo-ai.io/v1
